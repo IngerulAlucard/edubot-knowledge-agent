@@ -1,0 +1,46 @@
+id_curso,nombre_curso,categoria,nivel,duracion_horas,modalidad,costo_mxn,requisitos_previos,tipo_certificado,estado
+EDU-001,Introducción a la Programación,Programación,Principiante,30,Asincrónica,799,Ninguno,Certificado digital,Activo
+EDU-002,Python Básico,Programación,Principiante,40,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-003,Python para Análisis de Datos,Análisis de Datos,Intermedio,45,Asincrónica,1299,Conocimientos básicos de Python,Certificado digital,Activo
+EDU-004,Fundamentos de Bases de Datos,Bases de Datos,Principiante,35,Asincrónica,899,Ninguno,Certificado digital,Activo
+EDU-005,SQL para Principiantes,Bases de Datos,Principiante,32,Asincrónica,849,Ninguno,Certificado digital,Activo
+EDU-006,MySQL Práctico,Bases de Datos,Intermedio,38,Asincrónica,1099,Conocimientos básicos de SQL,Certificado digital,Activo
+EDU-007,Desarrollo Web con HTML y CSS,Desarrollo Web,Principiante,36,Asincrónica,899,Ninguno,Certificado digital,Activo
+EDU-008,JavaScript desde Cero,Desarrollo Web,Principiante,42,Asincrónica,999,Conocimientos básicos de HTML y CSS,Certificado digital,Activo
+EDU-009,PHP y MySQL para Aplicaciones Web,Desarrollo Web,Intermedio,50,Asincrónica,1399,HTML CSS y bases de datos básicas,Certificado digital,Activo
+EDU-010,Git y GitHub para Proyectos,DevOps,Principiante,24,Asincrónica,699,Ninguno,Certificado digital,Activo
+EDU-011,Linux Básico para Estudiantes,DevOps,Principiante,28,Asincrónica,749,Ninguno,Certificado digital,Activo
+EDU-012,Administración Básica de Servidores Linux,DevOps,Intermedio,48,Asincrónica,1499,Conocimientos básicos de Linux,Certificado digital,Activo
+EDU-013,Fundamentos de Cloud Computing,Cloud Computing,Principiante,34,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-014,Introducción a Oracle Cloud Infrastructure,Cloud Computing,Intermedio,40,Asincrónica,1299,Fundamentos de cloud computing,Certificado digital,Activo
+EDU-015,Deploy de Aplicaciones en la Nube,Cloud Computing,Intermedio,46,Asincrónica,1499,Linux básico y fundamentos de cloud,Certificado digital,Activo
+EDU-016,Fundamentos de Inteligencia Artificial,Inteligencia Artificial,Principiante,30,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-017,Agentes de IA con Python,Inteligencia Artificial,Intermedio,52,Asincrónica,1599,Python básico,Certificado digital,Activo
+EDU-018,Procesamiento de Documentos con IA,Inteligencia Artificial,Intermedio,44,Asincrónica,1399,Python básico y manejo de archivos,Certificado digital,Activo
+EDU-019,Automatización con n8n,Automatización,Principiante,36,Asincrónica,1199,Ninguno,Certificado digital,Activo
+EDU-020,Chatbots para Atención al Cliente,Automatización,Intermedio,42,Asincrónica,1299,Fundamentos de IA o programación básica,Certificado digital,Activo
+EDU-021,Power BI para Principiantes,Análisis de Datos,Principiante,35,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-022,Excel para Análisis de Datos,Análisis de Datos,Principiante,30,Asincrónica,799,Ninguno,Certificado digital,Activo
+EDU-023,Visualización de Datos con Python,Análisis de Datos,Intermedio,46,Asincrónica,1399,Python básico,Certificado digital,Activo
+EDU-024,Fundamentos de Ciberseguridad,Ciberseguridad,Principiante,34,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-025,Seguridad en Aplicaciones Web,Ciberseguridad,Intermedio,48,Asincrónica,1499,Desarrollo web básico,Certificado digital,Activo
+EDU-026,Redes de Computadoras desde Cero,Redes,Principiante,36,Asincrónica,899,Ninguno,Certificado digital,Activo
+EDU-027,Fundamentos de IoT,Internet de las Cosas,Principiante,32,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-028,Proyectos con ESP32,Internet de las Cosas,Intermedio,44,Asincrónica,1399,Electrónica básica y programación básica,Certificado digital,Activo
+EDU-029,Metodologías Ágiles para Equipos,Gestión de Proyectos,Principiante,26,Asincrónica,699,Ninguno,Certificado digital,Activo
+EDU-030,Documentación Técnica Profesional,Gestión de Proyectos,Principiante,24,Asincrónica,699,Ninguno,Certificado digital,Activo
+EDU-031,Arquitectura Básica de Software,Ingeniería de Software,Intermedio,40,Asincrónica,1299,Programación básica,Certificado digital,Activo
+EDU-032,Pruebas de Software y Calidad,Ingeniería de Software,Intermedio,38,Asincrónica,1199,Programación básica,Certificado digital,Activo
+EDU-033,Diseño de APIs REST,Desarrollo Backend,Intermedio,45,Asincrónica,1399,Programación web básica,Certificado digital,Activo
+EDU-034,Node.js para Backend,Desarrollo Backend,Intermedio,50,Asincrónica,1499,JavaScript básico,Certificado digital,Activo
+EDU-035,Introducción a Docker,DevOps,Intermedio,36,Asincrónica,1299,Linux básico,Certificado digital,Activo
+EDU-036,Fundamentos de Kubernetes,DevOps,Avanzado,54,Asincrónica,1799,Docker y Linux básico,Certificado digital,Activo
+EDU-037,Prompt Engineering para Estudiantes,Inteligencia Artificial,Principiante,20,Asincrónica,599,Ninguno,Certificado digital,Activo
+EDU-038,Ética y Uso Responsable de IA,Inteligencia Artificial,Principiante,18,Asincrónica,499,Ninguno,Constancia digital,Activo
+EDU-039,Preparación para Entrevistas Técnicas,Habilidades Profesionales,Intermedio,28,Asincrónica,899,Programación básica,Constancia digital,Activo
+EDU-040,Portafolio Profesional para Desarrolladores,Habilidades Profesionales,Principiante,26,Asincrónica,799,Ninguno,Constancia digital,Activo
+EDU-041,Java Básico,Programación,Principiante,42,Asincrónica,999,Ninguno,Certificado digital,Activo
+EDU-042,Programación Orientada a Objetos con Java,Programación,Intermedio,48,Asincrónica,1299,Java básico,Certificado digital,Activo
+EDU-043,Fundamentos de Firebase,Desarrollo Backend,Principiante,34,Asincrónica,999,Programación básica,Certificado digital,Activo
+EDU-044,MongoDB para Aplicaciones Modernas,Bases de Datos,Intermedio,40,Asincrónica,1299,Bases de datos básicas,Certificado digital,Activo
+EDU-045,Introducción a Machine Learning,Inteligencia Artificial,Intermedio,50,Asincrónica,1599,Python básico y estadística básica,Certificado digital,Activo
