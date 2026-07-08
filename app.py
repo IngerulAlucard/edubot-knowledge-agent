@@ -175,8 +175,9 @@ def main():
 
         if st.button("Consultar"):
             if question.strip():
-                relevant_chunks = search_relevant_chunks(question, chunks)
-                answer = generate_answer(question, relevant_chunks)
+                with st.spinner("EduBot está consultando la base de conocimiento..."):
+                    relevant_chunks = search_relevant_chunks(question, chunks)
+                    answer = generate_answer(question, relevant_chunks)
 
                 st.subheader("Respuesta de EduBot")
                 st.write(answer)
