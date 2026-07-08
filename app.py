@@ -1,14 +1,15 @@
-﻿import os
-from pathlib import Path
+﻿from pathlib import Path
 
 import streamlit as st
 
 from src.document_loader import load_pdf_text, load_csv_data, csv_to_text
 from src.knowledge_base import split_text_into_chunks, search_relevant_chunks
-from src.chatbot import generate_answer
+from src.chatbot import generate_answer, is_greeting, get_welcome_message
+
 
 UPLOAD_DIR = Path("data/uploads")
 ALLOWED_EXTENSIONS = [".pdf", ".csv"]
+
 
 st.set_page_config(
     page_title="EduBot Knowledge Agent",
@@ -16,11 +17,13 @@ st.set_page_config(
     layout="wide"
 )
 
+
 def ensure_upload_dir():
     """
     Crea la carpeta de archivos si no existe.
     """
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def list_uploaded_files():
     """
@@ -35,10 +38,10 @@ def list_uploaded_files():
 
     return sorted(files)
 
+
 def save_uploaded_files(uploaded_files):
     """
     Guarda los archivos subidos por el usuario en la carpeta de uploads.
-
     """
     ensure_upload_dir()
 
@@ -48,6 +51,7 @@ def save_uploaded_files(uploaded_files):
         with open(file_path, "wb") as file:
             file.write(uploaded_file.getbuffer())
 
+
 def delete_file(file_path: Path):
     """
     Elimina un archivo seleccionado.
@@ -56,13 +60,11 @@ def delete_file(file_path: Path):
         file_path.unlink()
 
 
-
 @st.cache_data
 def load_knowledge_base(file_paths):
     """
-    Carga y procesa el PDF y el CSV disponibles.
+    Carga y procesa los archivos PDF y CSV disponibles.
     """
-
     full_text_parts = []
     csv_tables = []
 
@@ -96,13 +98,8 @@ def main():
     ensure_upload_dir()
 
     st.title("📚 EduBot Knowledge Agent")
-    st.write(
-        "Agente inteligente para consultar la documentación interna de EduNova Academy."
-    )
 
-    st.info(
-        "Agente inteligente para consultar información sobre EduNova Academy. "
-    )
+    st.success(get_welcome_message())
 
     st.sidebar.header("📂 Gestión de documentos")
 
@@ -146,11 +143,29 @@ def main():
 
     uploaded_file_paths = list_uploaded_files()
 
+    question = st.text_input(
+        "Escribe tu pregunta:",
+        placeholder="Ejemplo: ¿Qué cursos pertenecen a Cloud Computing?"
+    )
+
     if not uploaded_file_paths:
         st.warning(
             "No hay documentos disponibles. Sube al menos un archivo PDF o CSV "
-            "para que EduBot pueda responder preguntas."
+            "para que EduBot pueda responder preguntas sobre la base de conocimiento."
         )
+
+        if st.button("Consultar"):
+            if question.strip():
+                if is_greeting(question):
+                    st.subheader("Respuesta de EduBot")
+                    st.write(get_welcome_message())
+                else:
+                    st.warning(
+                        "Primero debes subir documentos para que EduBot pueda consultar información."
+                    )
+            else:
+                st.warning("Escribe una pregunta antes de consultar. El bot no lee mentes, todavía.")
+
         return
 
     try:
@@ -168,24 +183,18 @@ def main():
             st.write("• ¿Cuánto cuesta Python Básico?")
             st.write("• ¿Qué requisitos necesito para solicitar una beca?")
 
-        question = st.text_input(
-            "Escribe tu pregunta:",
-            placeholder="Ejemplo: ¿Qué cursos pertenecen a Cloud Computing?"
-        )
-
         if st.button("Consultar"):
             if question.strip():
-                with st.spinner("EduBot está consultando la base de conocimiento..."):
-                    relevant_chunks = search_relevant_chunks(question, chunks)
-                    answer = generate_answer(question, relevant_chunks)
+                if is_greeting(question):
+                    answer = get_welcome_message()
+                else:
+                    with st.spinner("EduBot está consultando la base de conocimiento..."):
+                        relevant_chunks = search_relevant_chunks(question, chunks)
+                        answer = generate_answer(question, relevant_chunks)
 
                 st.subheader("Respuesta de EduBot")
                 st.write(answer)
 
-                with st.expander("Ver fragmentos consultados"):
-                    for index, (score, chunk) in enumerate(relevant_chunks, start=1):
-                        st.markdown(f"**Fragmento {index} | Puntuación: {score}**")
-                        st.write(chunk)
             else:
                 st.warning("Escribe una pregunta antes de consultar. El bot no lee mentes, todavía.")
 
