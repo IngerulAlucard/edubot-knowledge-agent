@@ -6,6 +6,7 @@ def split_text_into_chunks(text: str, chunk_size: int = 900) -> List[str]:
     """
     Divide un texto largo en fragmentos para facilitar la búsqueda de información.
     """
+    # Se compactan espacios para evitar fragmentos inflados por saltos de línea.
     clean_text = re.sub(r"\s+", " ", text).strip()
 
     chunks = []
@@ -38,6 +39,7 @@ def calculate_score(question: str, chunk: str) -> int:
     question_words = set(normalize_text(question).split())
     chunk_words = set(normalize_text(chunk).split())
 
+    # Estas palabras comunes aportan poco a la relevancia de un fragmento.
     ignored_words = {
         "que", "qué", "como", "cómo", "cual", "cuál", "cuando", "cuándo",
         "donde", "dónde", "para", "por", "con", "los", "las", "una", "uno",
@@ -62,6 +64,7 @@ def search_relevant_chunks(
     for chunk in chunks:
         score = calculate_score(question, chunk)
 
+        # Se descartan fragmentos sin coincidencias para no contaminar el contexto.
         if score > 0:
             scored_chunks.append((score, chunk))
 
@@ -92,6 +95,7 @@ def find_course_catalog_answer(question: str, csv_tables) -> str | None:
 
     catalog_dataframe = None
 
+    # Se identifica el CSV que tiene la estructura esperada del catálogo.
     for file_name, dataframe in csv_tables:
         required_columns = {
             "nombre_curso",
@@ -112,7 +116,7 @@ def find_course_catalog_answer(question: str, csv_tables) -> str | None:
     if catalog_dataframe is None:
         return None
 
-    # Preguntas sobre cursos de nivel principiante
+    # Preguntas sobre cursos de nivel principiante.
     beginner_keywords = [
         "nivel principiante",
         "cursos principiantes",
@@ -138,7 +142,7 @@ def find_course_catalog_answer(question: str, csv_tables) -> str | None:
 
         return response.strip()
 
-    # Preguntas sobre cursos de nivel intermedio
+    # Preguntas sobre cursos de nivel intermedio.
     intermediate_keywords = [
         "nivel intermedio",
         "cursos intermedios",
@@ -163,7 +167,7 @@ def find_course_catalog_answer(question: str, csv_tables) -> str | None:
 
         return response.strip()
 
-    # Preguntas sobre cursos de nivel avanzado
+    # Preguntas sobre cursos de nivel avanzado.
     advanced_keywords = [
         "nivel avanzado",
         "cursos avanzados",
@@ -188,7 +192,7 @@ def find_course_catalog_answer(question: str, csv_tables) -> str | None:
 
         return response.strip()
 
-    # Preguntas sobre Cloud Computing
+    # Preguntas sobre Cloud Computing.
     if "curso" in question_normalized and "cloud" in question_normalized:
         courses = catalog_dataframe[
             catalog_dataframe["categoria"].astype(str).str.lower().str.contains("cloud computing", na=False)
@@ -207,18 +211,27 @@ def find_course_catalog_answer(question: str, csv_tables) -> str | None:
 
         return response.strip()
 
-    # Pregunta específica sobre Python Básico
-    if "python basico" in question_normalized or "python básico" in question.lower():
-        course = catalog_dataframe[
-            catalog_dataframe["nombre_curso"].astype(str).str.lower().str.strip() == "python básico"
+    # Preguntas sobre costo/precio de cualquier curso
+    price_keywords = [
+        "cuanto cuesta",
+        "cuánto cuesta",
+        "precio",
+        "costo",
+        "cuanto vale",
+        "cuánto vale"
         ]
+    
+    if any(keyword in question_normalized for keyword in price_keywords):
+        for _, row in catalog_dataframe.iterrows():
+            course_name = str(row["nombre_curso"])
+            course_name_normalized = normalize_text(course_name)
 
-        if not course.empty:
-            row = course.iloc[0]
-            return (
-                f"El curso Python Básico cuesta {row['costo_mxn']} MXN. "
-                f"Tiene una duración de {row['duracion_horas']} horas, "
-                f"es de nivel {row['nivel']} y su modalidad es {row['modalidad']}."
-            )
+            if course_name_normalized in question_normalized:
+                return (
+                    f"El curso {course_name} cuesta {row['costo_mxn']} MXN. "
+                    f"Tiene una duración de {row['duracion_horas']} horas, "
+                    f"es de nivel {row['nivel']} y su modalidad es {row['modalidad']}."
+                )
+        return
 
     return None

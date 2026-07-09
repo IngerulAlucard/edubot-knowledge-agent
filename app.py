@@ -36,6 +36,7 @@ def list_uploaded_files():
     """
     ensure_upload_dir()
 
+    # Solo se muestran archivos que la aplicación sabe procesar.
     files = [
         file for file in UPLOAD_DIR.iterdir()
         if file.is_file() and file.suffix.lower() in ALLOWED_EXTENSIONS
@@ -53,6 +54,7 @@ def save_uploaded_files(uploaded_files):
     for uploaded_file in uploaded_files:
         file_path = UPLOAD_DIR / uploaded_file.name
 
+        # Streamlit entrega el archivo en memoria; aquí se persiste en disco.
         with open(file_path, "wb") as file:
             file.write(uploaded_file.getbuffer())
 
@@ -77,12 +79,14 @@ def load_knowledge_base(file_paths):
         file_path = Path(file_path_str)
         extension = file_path.suffix.lower()
 
+        # Los PDF se agregan como texto libre para búsqueda por fragmentos.
         if extension == ".pdf":
             pdf_text = load_pdf_text(str(file_path))
             full_text_parts.append(
                 f"\nDOCUMENTO PDF: {file_path.name}\n{pdf_text}"
             )
 
+        # Los CSV se guardan como tabla y también como texto para el contexto general.
         elif extension == ".csv":
             dataframe = load_csv_data(str(file_path))
             csv_text = csv_to_text(dataframe)
@@ -100,6 +104,7 @@ def load_knowledge_base(file_paths):
 
 
 def main():
+    # Punto de entrada de la interfaz Streamlit.
     ensure_upload_dir()
 
     st.title("📚 EduBot Knowledge Agent")
@@ -117,6 +122,7 @@ def main():
     if uploaded_files:
         if st.sidebar.button("Guardar archivos subidos"):
             save_uploaded_files(uploaded_files)
+            # Limpia la caché para que los archivos nuevos entren en la base.
             st.cache_data.clear()
             st.sidebar.success("Archivos guardados correctamente.")
             st.rerun()
@@ -137,11 +143,13 @@ def main():
             with col2:
                 if st.button("🗑️", key=f"delete_{file_path.name}"):
                     delete_file(file_path)
+                    # Limpia la caché para evitar respuestas basadas en archivos eliminados.
                     st.cache_data.clear()
                     st.sidebar.success(f"Archivo eliminado: {file_path.name}")
                     st.rerun()
 
     if st.sidebar.button("Recargar base de conocimiento"):
+        # Fuerza el reprocesamiento de documentos cuando cambian fuera de la app.
         st.cache_data.clear()
         st.sidebar.success("Base de conocimiento recargada.")
         st.rerun()
@@ -194,11 +202,13 @@ def main():
                     answer = get_welcome_message()
                 else:
                     with st.spinner("EduBot está consultando la base de conocimiento..."):
+                        # Primero intenta responder con el catálogo estructurado.
                         catalog_answer = find_course_catalog_answer(question, csv_tables)
 
                         if catalog_answer:
                             answer = catalog_answer
                         else:
+                            # Si no aplica el catálogo, usa recuperación de texto y Cohere.
                             relevant_chunks = search_relevant_chunks(question, chunks)
                             answer = generate_answer(question, relevant_chunks)
 

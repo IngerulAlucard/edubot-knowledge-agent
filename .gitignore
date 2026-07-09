@@ -17,3 +17,6 @@ env/
 
 # Streamlit
 .streamlit/secrets.toml
+.streamlit/credentials.toml
+.streamlit/cache/
+.agents
