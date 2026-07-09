@@ -3,7 +3,12 @@
 import streamlit as st
 
 from src.document_loader import load_pdf_text, load_csv_data, csv_to_text
-from src.knowledge_base import split_text_into_chunks, search_relevant_chunks
+from src.knowledge_base import (
+    split_text_into_chunks,
+    search_relevant_chunks,
+    find_course_catalog_answer
+)
+
 from src.chatbot import generate_answer, is_greeting, get_welcome_message
 
 
@@ -189,8 +194,13 @@ def main():
                     answer = get_welcome_message()
                 else:
                     with st.spinner("EduBot está consultando la base de conocimiento..."):
-                        relevant_chunks = search_relevant_chunks(question, chunks)
-                        answer = generate_answer(question, relevant_chunks)
+                        catalog_answer = find_course_catalog_answer(question, csv_tables)
+
+                        if catalog_answer:
+                            answer = catalog_answer
+                        else:
+                            relevant_chunks = search_relevant_chunks(question, chunks)
+                            answer = generate_answer(question, relevant_chunks)
 
                 st.subheader("Respuesta de EduBot")
                 st.write(answer)

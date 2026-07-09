@@ -78,3 +78,147 @@ def build_context(relevant_chunks: List[Tuple[int, str]]) -> str:
         return ""
 
     return "\n\n".join([chunk for _, chunk in relevant_chunks])
+
+def find_course_catalog_answer(question: str, csv_tables) -> str | None:
+    """
+    Responde preguntas estructuradas sobre el catálogo de cursos usando los CSV cargados.
+
+    Devuelve None si la pregunta no parece ser sobre el catálogo.
+    """
+    question_normalized = normalize_text(question)
+
+    if not csv_tables:
+        return None
+
+    catalog_dataframe = None
+
+    for file_name, dataframe in csv_tables:
+        required_columns = {
+            "nombre_curso",
+            "categoria",
+            "nivel",
+            "duracion_horas",
+            "modalidad",
+            "costo_mxn",
+            "requisitos_previos",
+            "tipo_certificado",
+            "estado"
+        }
+
+        if required_columns.issubset(set(dataframe.columns)):
+            catalog_dataframe = dataframe
+            break
+
+    if catalog_dataframe is None:
+        return None
+
+    # Preguntas sobre cursos de nivel principiante
+    beginner_keywords = [
+        "nivel principiante",
+        "cursos principiantes",
+        "cursos de principiante",
+        "para principiantes",
+        "principiante"
+    ]
+
+    if "curso" in question_normalized and any(keyword in question_normalized for keyword in beginner_keywords):
+        courses = catalog_dataframe[
+            catalog_dataframe["nivel"].astype(str).str.lower().str.strip() == "principiante"
+        ]
+
+        if courses.empty:
+            return "No encontré cursos de nivel principiante en el catálogo."
+
+        course_names = courses["nombre_curso"].tolist()
+
+        response = "Según el catálogo, estos son los cursos de nivel principiante:\n\n"
+
+        for course_name in course_names:
+            response += f"- {course_name}\n"
+
+        return response.strip()
+
+    # Preguntas sobre cursos de nivel intermedio
+    intermediate_keywords = [
+        "nivel intermedio",
+        "cursos intermedios",
+        "cursos de intermedio",
+        "intermedio"
+    ]
+
+    if "curso" in question_normalized and any(keyword in question_normalized for keyword in intermediate_keywords):
+        courses = catalog_dataframe[
+            catalog_dataframe["nivel"].astype(str).str.lower().str.strip() == "intermedio"
+        ]
+
+        if courses.empty:
+            return "No encontré cursos de nivel intermedio en el catálogo."
+
+        course_names = courses["nombre_curso"].tolist()
+
+        response = "Según el catálogo, estos son los cursos de nivel intermedio:\n\n"
+
+        for course_name in course_names:
+            response += f"- {course_name}\n"
+
+        return response.strip()
+
+    # Preguntas sobre cursos de nivel avanzado
+    advanced_keywords = [
+        "nivel avanzado",
+        "cursos avanzados",
+        "cursos de avanzado",
+        "avanzado"
+    ]
+
+    if "curso" in question_normalized and any(keyword in question_normalized for keyword in advanced_keywords):
+        courses = catalog_dataframe[
+            catalog_dataframe["nivel"].astype(str).str.lower().str.strip() == "avanzado"
+        ]
+
+        if courses.empty:
+            return "No encontré cursos de nivel avanzado en el catálogo."
+
+        course_names = courses["nombre_curso"].tolist()
+
+        response = "Según el catálogo, estos son los cursos de nivel avanzado:\n\n"
+
+        for course_name in course_names:
+            response += f"- {course_name}\n"
+
+        return response.strip()
+
+    # Preguntas sobre Cloud Computing
+    if "curso" in question_normalized and "cloud" in question_normalized:
+        courses = catalog_dataframe[
+            catalog_dataframe["categoria"].astype(str).str.lower().str.contains("cloud computing", na=False)
+        ]
+
+        if courses.empty:
+            return "No encontré cursos de Cloud Computing en el catálogo."
+
+        response = "Según el catálogo, estos son los cursos de Cloud Computing:\n\n"
+
+        for _, row in courses.iterrows():
+            response += (
+                f"- {row['nombre_curso']} "
+                f"({row['nivel']}, {row['duracion_horas']} horas, {row['costo_mxn']} MXN)\n"
+            )
+
+        return response.strip()
+
+    # Pregunta específica sobre Python Básico
+    if "python basico" in question_normalized or "python básico" in question.lower():
+        course = catalog_dataframe[
+            catalog_dataframe["nombre_curso"].astype(str).str.lower().str.strip() == "python básico"
+        ]
+
+        if not course.empty:
+            row = course.iloc[0]
+            return (
+                f"El curso Python Básico cuesta {row['costo_mxn']} MXN. "
+                f"Tiene una duración de {row['duracion_horas']} horas, "
+                f"es de nivel {row['nivel']} y su modalidad es {row['modalidad']}."
+            )
+
+    return None
