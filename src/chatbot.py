@@ -83,7 +83,8 @@ Reglas:
 - Si la pregunta trata sobre cursos, precios, duración, nivel o requisitos, usa la información del catálogo.
 - Si la pregunta trata sobre certificados, becas, reembolsos, soporte, pagos, evaluaciones o reglamento, usa la documentación institucional.
 - No pegues todo el contexto.
-- Resume la respuesta de forma natural.
+- - Resume la respuesta de forma natural, pero no omitas condiciones importantes, requisitos obligatorios, plazos, porcentajes, correos de contacto ni excepciones cuando aparezcan en el contexto.
+- Cuando el usuario pregunte por requisitos, condiciones o casos donde aplica una política, enumera todos los requisitos relevantes encontrados en el contexto.
 
 Pregunta del usuario:
 {question}
