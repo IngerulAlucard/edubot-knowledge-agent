@@ -1,118 +1,254 @@
-# EduBot Knowledge Agent
+# 📚 EduBot Knowledge Agent
 
-EduBot es un agente de consulta documental para **EduNova Academy**, una plataforma educativa ficticia. Permite hacer preguntas en lenguaje natural sobre cursos, certificados, becas, reembolsos, pagos, evaluaciones, soporte técnico y reglamento académico.
+EduBot Knowledge Agent es un chatbot desarrollado en Python para responder preguntas sobre la documentación interna de una plataforma educativa ficticia llamada **EduNova Academy**.
 
-La aplicación combina consultas estructuradas sobre un catálogo CSV con recuperación semántica sobre documentos PDF. El chatbot es público; la carga, eliminación y recarga de documentos está reservada al administrador.
+La aplicación utiliza documentos PDF y un catálogo de cursos en formato CSV como base de conocimiento. Cualquier visitante puede utilizar el chatbot sin registrarse. Las funciones para subir, eliminar y recargar documentos están protegidas mediante una contraseña administrativa.
 
-## Características principales
+---
 
-- Interfaz web pública construida con Streamlit.
-- Respuestas deterministas para el catálogo mediante Pandas.
-- Recuperación semántica sobre documentos mediante embeddings.
-- Respuestas en español generadas con Cohere y contexto recuperado.
-- Gestión de documentos PDF y CSV protegida con contraseña.
-- Caché del modelo y de la base procesada.
-- Validaciones para preguntas, archivos, configuración y errores.
+## 🎯 Objetivo
 
-## Arquitectura de la solución
+Desarrollar un agente de inteligencia artificial capaz de procesar documentos educativos para responder preguntas frecuentes de estudiantes y visitantes de forma clara, rápida y basada en información documentada.
 
-EduBot utiliza una arquitectura modular e híbrida con dos rutas de respuesta:
+---
+
+## 📌 Descripción general del proyecto
+
+EduNova Academy maneja información distribuida en políticas, reglamentos, manuales, guías y catálogos.
+
+Buscar respuestas manualmente en estos documentos puede resultar lento y poco práctico. EduBot centraliza la información y permite consultarla mediante preguntas en lenguaje natural.
+
+El agente puede responder preguntas relacionadas con:
+
+* Cursos disponibles.
+* Precio, duración, nivel y modalidad.
+* Certificados y constancias.
+* Becas.
+* Reembolsos.
+* Pagos y facturación.
+* Evaluaciones.
+* Proyectos finales.
+* Soporte técnico.
+* Reglamento académico.
+
+---
+
+## 🧠 Arquitectura de la solución
+
+EduBot utiliza una arquitectura híbrida con dos mecanismos de respuesta.
+
+### Consultas estructuradas
+
+Las preguntas relacionadas con el catálogo de cursos se procesan directamente con Pandas.
+
+Ejemplos:
+
+* ¿Cuánto cuesta Python Básico?
+* ¿Qué cursos son de nivel principiante?
+* ¿Qué cursos pertenecen a Cloud Computing?
+* ¿Cuál es el curso más barato?
+* ¿Hay cursos sincrónicos?
+
+Estas consultas se resuelven aplicando filtros al archivo CSV.
+
+### Consultas documentales
+
+Las preguntas relacionadas con políticas, procedimientos y reglamentos utilizan recuperación semántica mediante embeddings.
 
 ```text
 Usuario
-  |
-  v
-Interfaz pública de Streamlit
-  |
-  +--> Saludo -----------------------------> Respuesta local
-  |
-  +--> Pregunta sobre cursos
-  |       |
-  |       v
-  |    Filtros con Pandas -----------------> Respuesta estructurada
-  |
-  +--> Pregunta documental
-          |
-          v
+   ↓
+Interfaz Streamlit
+   ↓
+Pregunta
+   ↓
+Clasificación de la consulta
+   ├── Consulta del catálogo
+   │      ↓
+   │   Filtros con Pandas
+   │      ↓
+   │   Respuesta directa
+   │
+   └── Consulta documental
+          ↓
        Embedding de la pregunta
-          |
-          v
-       Similitud con fragmentos PDF/CSV
-          |
-          v
-       Hasta 4 fragmentos relevantes
-          |
-          v
-       Cohere Command R -------------------> Respuesta contextual
-
-Administrador
-  |
-  v
-Autenticación con ADMIN_PASSWORD
-  |
-  v
-Subir, eliminar, listar y recargar documentos
+          ↓
+       Comparación semántica
+          ↓
+       Fragmentos relevantes
+          ↓
+       Construcción del contexto
+          ↓
+       Cohere
+          ↓
+       Respuesta generada
 ```
 
-El orden de decisión es:
+La documentación técnica ampliada se encuentra en:
 
-1. Los saludos se contestan localmente, sin consumir la API.
-2. Las preguntas reconocidas sobre cursos se resuelven directamente sobre el CSV.
-3. Las demás preguntas se procesan mediante recuperación semántica y Cohere.
-4. Si no existe contexto suficiente, el agente lo indica en lugar de inventar una respuesta.
+```text
+docs/arquitectura.md
+```
 
-La explicación técnica completa está en [docs/arquitectura.md](docs/arquitectura.md).
+---
 
-## Tecnologías y herramientas
+## 🔎 Recuperación semántica
 
-| Tecnología | Uso en el proyecto |
-| --- | --- |
-| Python | Lenguaje principal |
-| Streamlit | Interfaz web, estado y caché |
-| Pandas | Lectura y filtrado del catálogo CSV |
-| PyPDF | Extracción de texto de documentos PDF |
-| Sentence Transformers | Embeddings multilingües locales |
-| NumPy | Similitud entre vectores |
-| Cohere | Generación de respuestas con contexto |
-| python-dotenv | Variables de entorno en desarrollo |
-| Git y GitHub | Control de versiones |
-| Oracle Cloud Infrastructure | Plataforma prevista para despliegue |
+EduBot utiliza el modelo:
 
-Modelos configurados:
+```text
+sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+```
 
-- Embeddings: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`.
-- Generación: `command-r-08-2024` de Cohere.
+Este modelo convierte las preguntas y los fragmentos de documentos en vectores numéricos llamados embeddings.
 
-## Estructura del repositorio
+Esto permite encontrar información por significado y no únicamente por coincidencia exacta de palabras.
+
+Por ejemplo:
+
+```text
+¿Cómo recupero el dinero que pagué?
+```
+
+puede relacionarse con información sobre:
+
+```text
+Política de reembolsos
+```
+
+aunque la pregunta no incluya exactamente la palabra `reembolso`.
+
+La configuración actual recupera hasta cuatro fragmentos con una puntuación mínima de similitud de `0.25`.
+
+---
+
+## 🔐 Acceso público y administración
+
+El chatbot es público y no requiere inicio de sesión.
+
+Cualquier visitante puede:
+
+* Escribir preguntas.
+* Consultar la base de conocimiento.
+* Ver respuestas generadas por EduBot.
+
+El panel administrativo está protegido mediante contraseña.
+
+Solo el administrador puede:
+
+* Subir documentos PDF o CSV.
+* Eliminar documentos.
+* Recargar la base de conocimiento.
+* Ver la vista previa completa del catálogo.
+
+La contraseña administrativa se configura mediante la variable de entorno:
+
+```env
+ADMIN_PASSWORD=tu_contraseña_administrativa
+```
+
+---
+
+## 🛠️ Tecnologías y herramientas utilizadas
+
+| Tecnología                  | Uso                                     |
+| --------------------------- | --------------------------------------- |
+| Python                      | Lenguaje principal                      |
+| Streamlit                   | Interfaz web                            |
+| Pandas                      | Procesamiento estructurado del catálogo |
+| PyPDF                       | Extracción de texto desde PDF           |
+| Sentence Transformers       | Generación de embeddings                |
+| NumPy                       | Comparación de vectores                 |
+| Cohere                      | Generación de respuestas                |
+| python-dotenv               | Carga de variables de entorno           |
+| Git                         | Control de versiones                    |
+| GitHub                      | Repositorio del proyecto                |
+| Oracle Cloud Infrastructure | Plataforma prevista para despliegue     |
+
+---
+
+## 📂 Estructura del repositorio
 
 ```text
 edubot-knowledge-agent/
 ├── app.py
 ├── requirements.txt
 ├── README.md
-├── .env.example
+├── .gitignore
 ├── data/
-│   └── uploads/                 # PDF y CSV usados por la aplicación
+│   └── uploads/
 ├── src/
-│   ├── chatbot.py               # Prompt, saludos y Cohere
-│   ├── document_loader.py        # Lectura de PDF y CSV
-│   └── knowledge_base.py         # Chunks, embeddings y filtros
-└── docs/
-    ├── arquitectura.md
-    ├── ejemplos_preguntas.md
-    ├── evidencia_deploy.md
-    └── base_conocimiento/        # Fuentes editables
+│   ├── __init__.py
+│   ├── document_loader.py
+│   ├── knowledge_base.py
+│   └── chatbot.py
+├── docs/
+│   ├── arquitectura.md
+│   ├── ejemplos_preguntas.md
+│   └── evidencia_deploy.md
+└── screenshots/
 ```
 
-## Requisitos previos
+---
 
-- Python 3.10 o superior.
-- Git.
-- Una clave válida de Cohere.
-- Conexión a internet para Cohere y la descarga inicial del modelo.
-- Al menos 2 GB de RAM recomendados.
+## 📄 Componentes principales
 
-## Instrucciones para ejecutar el proyecto
+### `app.py`
+
+Contiene la interfaz Streamlit y coordina el flujo general.
+
+Se encarga de:
+
+* Mostrar el chatbot.
+* Recibir preguntas.
+* Gestionar el acceso administrativo.
+* Subir y eliminar archivos.
+* Cargar la base de conocimiento.
+* Mostrar respuestas y errores.
+
+### `src/document_loader.py`
+
+Se encarga de:
+
+* Leer archivos PDF.
+* Extraer texto.
+* Cargar archivos CSV.
+* Convertir el catálogo a texto.
+
+### `src/knowledge_base.py`
+
+Se encarga de:
+
+* Dividir documentos en fragmentos.
+* Normalizar texto.
+* Generar embeddings.
+* Buscar fragmentos relevantes.
+* Resolver consultas estructuradas del catálogo.
+
+### `src/chatbot.py`
+
+Se encarga de:
+
+* Detectar saludos.
+* Construir el contexto.
+* Validar la clave de Cohere.
+* Generar respuestas basadas en la documentación.
+
+---
+
+## ✅ Requisitos previos
+
+Para ejecutar el proyecto se necesita:
+
+* Python 3.10 o superior.
+* Git.
+* Una clave válida de Cohere.
+* Conexión a internet.
+* Al menos 2 GB de memoria RAM recomendados.
+
+---
+
+## 🚀 Instrucciones para ejecutar el proyecto
 
 ### 1. Clonar el repositorio
 
@@ -121,150 +257,272 @@ git clone https://github.com/IngerulAlucard/edubot-knowledge-agent.git
 cd edubot-knowledge-agent
 ```
 
-### 2. Crear y activar el entorno virtual
+### 2. Crear un entorno virtual
 
 ```bash
 python -m venv .venv
 ```
 
-Windows PowerShell:
+### 3. Activar el entorno virtual
 
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Linux o macOS:
+En Linux o macOS:
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 3. Instalar dependencias
+En Windows:
+
+```powershell
+.venv\Scripts\activate
+```
+
+### 4. Instalar las dependencias
 
 ```bash
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Configurar variables de entorno
+### 5. Crear el archivo `.env`
 
-Copia `.env.example` como `.env` y reemplaza los valores:
+En la raíz del proyecto crea un archivo llamado `.env`:
 
 ```env
-COHERE_API_KEY=tu_api_key_de_cohere
-ADMIN_PASSWORD=una_contraseña_segura
+COHERE_API_KEY=tu_clave_de_cohere
+ADMIN_PASSWORD=tu_contraseña_administrativa
 ```
 
-- `COHERE_API_KEY` habilita las respuestas documentales con Cohere.
-- `ADMIN_PASSWORD` protege la gestión de archivos.
-- `.env` contiene secretos y no debe publicarse.
+El archivo `.env` no debe subirse a GitHub.
 
-### 5. Iniciar la aplicación
+### 6. Ejecutar la aplicación
 
 ```bash
 streamlit run app.py
 ```
 
-Abre `http://localhost:8501`. La primera ejecución puede tardar mientras se descarga el modelo de embeddings.
+La aplicación estará disponible normalmente en:
 
-## Uso de la aplicación
+```text
+http://localhost:8501
+```
 
-### Consulta pública
+---
 
-1. Escribe una pregunta en el campo principal.
-2. Selecciona **Consultar**.
-3. Revisa la respuesta obtenida del catálogo o de la documentación.
+## 📥 Uso de la aplicación
 
-### Gestión administrativa
+### Uso público
 
-1. Abre **Acceso administrativo** en la barra lateral.
-2. Ingresa el valor de `ADMIN_PASSWORD`.
-3. Sube archivos PDF o CSV, elimina documentos o recarga la base.
+1. Abrir EduBot en el navegador.
+2. Escribir una pregunta.
+3. Presionar **Consultar**.
+4. Revisar la respuesta.
 
-Los documentos se guardan en `data/uploads/`. Cada cambio limpia la caché para que la siguiente consulta utilice la versión actualizada.
+### Uso administrativo
 
-## Ejemplos de preguntas que el agente puede responder
+1. Abrir la sección **Acceso administrativo**.
+2. Escribir la contraseña configurada.
+3. Subir, eliminar o recargar documentos.
+4. Cerrar la sesión al terminar.
 
-### Cursos
+---
 
-- ¿Qué cursos son de nivel principiante?
-- ¿Cuánto cuesta Python Básico?
-- ¿Qué cursos pertenecen a Cloud Computing?
-- ¿Cuál es el curso más barato?
-- ¿Qué cursos cuestan menos de 1,000 MXN?
-- ¿Hay cursos con modalidad sincrónica?
-- ¿Qué cursos requieren conocimientos de Python?
-
-### Políticas y servicios académicos
-
-- ¿Cómo puedo obtener mi certificado?
-- ¿Cuánto tiempo tengo para pedir un reembolso?
-- ¿Qué requisitos necesito para solicitar una beca?
-- ¿Cuántos intentos tengo en una evaluación?
-- ¿Qué hago si olvidé mi contraseña?
-- ¿Cómo contacto a soporte técnico?
-- ¿Puedo usar inteligencia artificial en mis actividades?
-
-## Ejemplos de respuestas generadas por el agente
-
-Las respuestas dependen de los documentos presentes en `data/uploads/`. Con la base incluida se obtienen respuestas como estas:
+## 💬 Ejemplos de preguntas que el agente puede responder
 
 ### Certificados
 
-**Pregunta:** ¿Cómo puedo obtener mi certificado?
+```text
+¿Cómo puedo obtener mi certificado?
+```
 
-**Respuesta:** Para obtener un certificado digital debes completar el 100 % del contenido obligatorio, aprobar las evaluaciones con una calificación mínima de 80 sobre 100, entregar el proyecto final si aplica, no tener pagos pendientes, cumplir el reglamento académico y mantener actualizados tus datos personales.
+```text
+¿Cuánto tarda en aparecer mi certificado?
+```
 
 ### Reembolsos
 
-**Pregunta:** ¿Cómo recupero el dinero que pagué?
+```text
+¿Cuánto tiempo tengo para pedir un reembolso?
+```
 
-**Respuesta:** Puedes solicitar un reembolso dentro de los primeros 7 días naturales posteriores a la compra. Para que proceda, no debes haber completado más del 20 % del curso, descargado materiales restringidos ni recibido certificado o constancia. La solicitud debe enviarse a `administracion@edunova-academy.com`.
+```text
+¿Cómo recupero el dinero que pagué?
+```
+
+### Becas
+
+```text
+¿Qué requisitos necesito para solicitar una beca?
+```
+
+```text
+¿Cuánto cubre una beca?
+```
+
+### Soporte técnico
+
+```text
+¿Qué hago si no puedo iniciar sesión?
+```
+
+```text
+¿Cómo contacto a soporte técnico?
+```
 
 ### Evaluaciones
 
-**Pregunta:** ¿Cuántos intentos tengo en una evaluación?
-
-**Respuesta:** Cada evaluación tiene hasta 3 intentos disponibles. El sistema conserva la calificación más alta obtenida. Puedes solicitar un intento adicional ante soporte académico, pero su aprobación no es automática.
-
-### Catálogo de cursos
-
-**Pregunta:** ¿Cuánto cuesta Python Básico?
-
-**Respuesta:** El curso Python Básico cuesta 999 MXN.
-
-**Pregunta:** ¿Hay cursos con modalidad sincrónica?
-
-**Respuesta:** Según el catálogo actual, no hay cursos con modalidad sincrónica disponibles. Actualmente, los cursos registrados tienen modalidad asincrónica.
-
-## Seguridad y manejo de errores
-
-- El chatbot está disponible sin autenticación.
-- Las funciones administrativas requieren `ADMIN_PASSWORD`.
-- La contraseña se compara mediante `hmac.compare_digest`.
-- Solo se aceptan archivos `.pdf` y `.csv`.
-- La eliminación se restringe a `data/uploads/`.
-- Los detalles técnicos solo se muestran a administradores autenticados.
-- El prompt exige responder únicamente con el contexto recuperado.
-
-## Limitaciones actuales
-
-- No mantiene historial conversacional.
-- No utiliza una base vectorial ni persiste embeddings.
-- Los documentos se almacenan localmente.
-- La administración usa una contraseña compartida y estado de sesión.
-- No muestra citas de las fuentes en cada respuesta.
-- No incluye pruebas automatizadas.
-- Las respuestas documentales requieren internet y Cohere.
-
-## Despliegue en OCI
-
-```bash
-streamlit run app.py --server.address 0.0.0.0 --server.port 8501
+```text
+¿Qué calificación necesito para aprobar?
 ```
 
-El puerto `8501` debe permitirse en la red de OCI y en el firewall del sistema operativo. Consulta [docs/evidencia_deploy.md](docs/evidencia_deploy.md).
+```text
+¿Cuántos intentos tengo en una evaluación?
+```
 
-## Autoría y licencia
+### Cursos
 
-Desarrollado por **Angelica Jazmin Flores Pacheco (Îngerul Alucard/Noctis)** como proyecto educativo. El repositorio fue creado con fines académicos.
+```text
+¿Qué cursos son de nivel principiante?
+```
+
+```text
+¿Cuánto cuesta Python Básico?
+```
+
+```text
+¿Qué cursos pertenecen a Cloud Computing?
+```
+
+```text
+¿Hay cursos sincrónicos?
+```
+
+---
+
+## 🤖 Ejemplos de respuestas generadas
+
+### Ejemplo 1: certificado
+
+**Pregunta**
+
+```text
+¿Cómo puedo obtener mi certificado?
+```
+
+**Respuesta de ejemplo**
+
+Para obtener tu certificado debes completar el contenido obligatorio del curso, aprobar las evaluaciones con la calificación mínima requerida, entregar el proyecto final si aplica, mantener tus datos actualizados y no tener pagos pendientes.
+
+---
+
+### Ejemplo 2: reembolso
+
+**Pregunta**
+
+```text
+¿Cómo recupero el dinero que pagué?
+```
+
+**Respuesta de ejemplo**
+
+Puedes solicitar un reembolso dentro del plazo establecido en la política. La aprobación depende del avance del curso, la descarga de materiales y la emisión previa de certificados o constancias.
+
+---
+
+### Ejemplo 3: beca
+
+**Pregunta**
+
+```text
+¿Qué requisitos necesito para solicitar una beca?
+```
+
+**Respuesta de ejemplo**
+
+Debes proporcionar tu nombre completo, correo registrado, curso de interés, motivo de la solicitud, objetivo de aprendizaje y comprobante de estudios o situación laboral si aplica.
+
+---
+
+### Ejemplo 4: curso
+
+**Pregunta**
+
+```text
+¿Cuánto cuesta Python Básico?
+```
+
+**Respuesta de ejemplo**
+
+El curso Python Básico cuesta 999 MXN.
+
+---
+
+### Ejemplo 5: modalidad
+
+**Pregunta**
+
+```text
+¿Hay cursos sincrónicos?
+```
+
+**Respuesta de ejemplo**
+
+Según el catálogo actual, no hay cursos con modalidad sincrónica disponibles.
+
+---
+
+## ✔️ Validaciones implementadas
+
+La aplicación valida:
+
+* Que existan documentos.
+* Que la pregunta no esté vacía.
+* Que los archivos sean PDF o CSV.
+* Que el catálogo tenga las columnas necesarias.
+* Que exista `COHERE_API_KEY`.
+* Que exista `ADMIN_PASSWORD`.
+* Que la contraseña administrativa sea correcta.
+* Que los archivos se guarden dentro de `data/uploads/`.
+* Que existan fragmentos relevantes.
+* Que los errores se muestren de forma controlada.
+
+---
+
+## ⚠️ Limitaciones actuales
+
+* No mantiene historial de conversación.
+* No utiliza una base vectorial persistente.
+* Los embeddings se almacenan en memoria.
+* Los documentos se guardan localmente.
+* Solo existe una contraseña administrativa compartida.
+* No incluye pruebas automatizadas.
+* Cohere requiere conexión a internet.
+
+---
+
+## ☁️ Ejecución en OCI
+
+```bash
+export COHERE_API_KEY="tu_clave_de_cohere"
+export ADMIN_PASSWORD="tu_contraseña_administrativa"
+
+streamlit run app.py \
+  --server.address 0.0.0.0 \
+  --server.port 8501
+```
+
+El puerto `8501` debe habilitarse en OCI y en el firewall del sistema operativo.
+
+La evidencia del despliegue se documentará en:
+
+```text
+docs/evidencia_deploy.md
+```
+
+---
+
+## 👤 Autor
+
+**Îngerul Alucard**
+
+Proyecto desarrollado con fines educativos.
