@@ -3,3 +3,6 @@ pandas
 pypdf
 python-dotenv
 cohere
+sentence-transformers
+numpy
+torchvision

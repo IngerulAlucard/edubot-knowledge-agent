@@ -2,6 +2,84 @@ import unicodedata
 import re
 from typing import List, Tuple
 
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+
+def load_embedding_model() -> SentenceTransformer:
+    """
+    Carga un modelo multilingüe para generar embeddings semánticos.
+
+    Este modelo funciona con español y tiene un tamaño razonable para
+    una aplicación educativa pequeña.
+    """
+    return SentenceTransformer(
+        "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    )
+
+
+def generate_chunk_embeddings(
+    chunks: List[str],
+    model: SentenceTransformer
+) -> np.ndarray:
+    """
+    Convierte los fragmentos de la base de conocimiento en vectores.
+
+    Los embeddings se normalizan para poder calcular similitud mediante
+    producto punto.
+    """
+    if not chunks:
+        return np.empty((0, 0), dtype=np.float32)
+
+    embeddings = model.encode(
+        chunks,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False
+    )
+
+    return embeddings.astype(np.float32)
+
+
+def search_relevant_chunks_semantic(
+    question: str,
+    chunks: List[str],
+    chunk_embeddings: np.ndarray,
+    model: SentenceTransformer,
+    top_k: int = 4,
+    minimum_score: float = 0.25
+) -> List[Tuple[float, str]]:
+    """
+    Busca fragmentos por similitud semántica.
+
+    Devuelve una lista de tuplas:
+    (puntuación_de_similitud, fragmento)
+    """
+    if not question.strip():
+        return []
+
+    if not chunks or chunk_embeddings.size == 0:
+        return []
+
+    question_embedding = model.encode(
+        [question],
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=False
+    )[0]
+
+    similarities = np.dot(chunk_embeddings, question_embedding)
+    top_indices = np.argsort(similarities)[::-1][:top_k]
+    results = []
+
+    for index in top_indices:
+        score = float(similarities[index])
+
+        if score >= minimum_score:
+            results.append((score, chunks[index]))
+
+    return results
+
 
 def split_text_into_chunks(text: str, chunk_size: int = 900) -> List[str]:
     """

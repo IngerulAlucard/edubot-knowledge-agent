@@ -5,8 +5,10 @@ import streamlit as st
 from src.document_loader import load_pdf_text, load_csv_data, csv_to_text
 from src.knowledge_base import (
     split_text_into_chunks,
-    search_relevant_chunks,
-    find_course_catalog_answer
+    find_course_catalog_answer,
+    load_embedding_model,
+    generate_chunk_embeddings,
+    search_relevant_chunks_semantic
 )
 
 from src.chatbot import generate_answer, is_greeting, get_welcome_message
@@ -21,6 +23,14 @@ st.set_page_config(
     page_icon="📚",
     layout="wide"
 )
+
+
+@st.cache_resource
+def get_embedding_model():
+    """
+    Carga el modelo de embeddings una sola vez durante la ejecución.
+    """
+    return load_embedding_model()
 
 
 def ensure_upload_dir():
@@ -67,7 +77,7 @@ def delete_file(file_path: Path):
         file_path.unlink()
 
 
-@st.cache_data
+@st.cache_data(max_entries=10)
 def load_knowledge_base(file_paths):
     """
     Carga y procesa los archivos PDF y CSV disponibles.
@@ -99,8 +109,10 @@ def load_knowledge_base(file_paths):
 
     full_text = "\n\n".join(full_text_parts)
     chunks = split_text_into_chunks(full_text)
+    embedding_model = get_embedding_model()
+    chunk_embeddings = generate_chunk_embeddings(chunks, embedding_model)
 
-    return chunks, csv_tables
+    return chunks, chunk_embeddings, csv_tables
 
 
 def main():
@@ -183,7 +195,9 @@ def main():
 
     try:
         file_paths_as_strings = [str(path) for path in uploaded_file_paths]
-        chunks, csv_tables = load_knowledge_base(file_paths_as_strings)
+        chunks, chunk_embeddings, csv_tables = load_knowledge_base(
+            file_paths_as_strings
+        )
 
         with st.sidebar:
             st.metric("Archivos cargados", len(uploaded_file_paths))
@@ -209,7 +223,15 @@ def main():
                             answer = catalog_answer
                         else:
                             # Si no aplica el catálogo, usa recuperación de texto y Cohere.
-                            relevant_chunks = search_relevant_chunks(question, chunks)
+                            embedding_model = get_embedding_model()
+                            relevant_chunks = search_relevant_chunks_semantic(
+                                question=question,
+                                chunks=chunks,
+                                chunk_embeddings=chunk_embeddings,
+                                model=embedding_model,
+                                top_k=4,
+                                minimum_score=0.25
+                            )
                             answer = generate_answer(question, relevant_chunks)
 
                 st.subheader("Respuesta de EduBot")
