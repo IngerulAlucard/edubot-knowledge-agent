@@ -770,3 +770,6 @@ La aplicación valida:
 
 **ANGELICA JAZMIN FLORES PACHECO (Îngerul Alucard/Noctis)**
 
+## Licencia
+
+Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo [LICENSE](LICENSE) para conocer los términos de uso.
